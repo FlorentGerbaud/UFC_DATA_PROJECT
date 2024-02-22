@@ -1,0 +1,163 @@
+---
+title: "UFC_DATA_PROJECT"
+author: "Rayane_TROUDI"
+date: "2024-02-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# UFC DATA PROJECT 
+
+## Retrieve the data from csv data set to convert into dataset
+
+### Data Preparation
+
+#### First data set
+```{r}
+#first data set : global info about fight
+path1 = '/Users/rayane_macbook_pro/Library/Mobile Documents/com~apple~CloudDocs/MAM-S8/DATA_VALORIZATION/UFC_DATA_PROJECT_1/data.csv'
+path2 = 
+path3 = 
+  
+FIGHT_INFO = read.csv(path1, 
+                      header = TRUE,
+                      sep =",",
+                      fill = TRUE,
+                      na.strings = "NA",
+                      dec = ".")
+
+```
+
+#### some data about first dataset
+```{r}
+head(FIGHT_INFO)
+dim(FIGHT_INFO)
+names(FIGHT_INFO)
+summary(FIGHT_INFO)
+```
+
+#### second dataset
+```{r}
+#second data set : global info about fighter
+
+FIGHTER_INFO = read.csv(path1, 
+                      header = TRUE,
+                      sep =",",
+                      fill = TRUE,
+                      na.strings = "NA",
+                      dec = ".")
+head(FIGHTER_INFO)
+
+```
+
+#### third dataset
+```{r}
+
+#third data set : more info about fight (way of winning and so on)
+ADD_FIGHT_INFO = read.csv(path1, 
+                header = TRUE,
+                sep =";",
+                fill = TRUE,
+                na.string = "NA")
+```
+
+
+
+
+
+
+
+```{r}
+UNIQUE_FIGHTER<-table(FIGHT_INFO$R_fighter)
+COUNT_R_FIGHTER<-sort(UNIQUE_FIGHTER, decreasing = TRUE)
+COUNT_R_FIGHTER
+```
+```{r}
+B_FIGHTER<-table(FIGHT_INFO$B_fighter)
+COUNT_B_FIGHTER<-sort(B_FIGHTER, decreasing = TRUE)
+COUNT_B_FIGHTER
+```
+```{r}
+Winner_count<-table(FIGHT_INFO$Winner)
+Red_wins<-Winner_count["Red"]
+Blue_wins<-Winner_count["Blue"]
+print(paste("Red wins: ",Red_wins," ,Blue wins: ",Blue_wins))
+```
+```{r}
+library(ggplot2)
+Wins_data<-data.frame(
+  Fighter=c("Red","Blue"),
+  Wins=c(Red_wins,Blue_wins)
+)
+
+
+ggplot(Wins_data, aes(x = Fighter, y = Wins, fill = Fighter)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Nombre de victoires par couleur de combattant",
+       x = "combattant",
+       y = "Nombre de victoires") +
+  scale_fill_manual(values = c("Red" = "red", "Blue" = "blue")) +
+  theme_minimal()
+```
+```{r}
+Categorie<-table(FIGHT_INFO$weight_class)
+Categorie
+```
+
+```{r}
+Categorie_data<-data.frame(
+ Categorie = names(Categorie),
+ Count = as.numeric(Categorie)
+)
+library(ggplot2)
+
+# Création du graphique
+ggplot(Categorie_data, aes(x = Categorie, y = Count, fill = Categorie)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Nombre de combat dans chaque catégorie",
+       x = "Catégorie",
+       y = "Nombre de combat") +
+  scale_fill_manual(values = c("Lightweight"='red',"Welterweight"="blue","Middleweight"='green',"Heavyweight"='orange',"LightHeavyweight"='pink',"Featherweight"='purple',"Bantamweight"='blueviolet',"Flyweight"='aliceblue',"WomenStrawweight"='azure1',"WomenBantamweight"='aquamarine',"WomenFlyweight"='lightblue',"OpenWeight"='black',"CatchWeight"='yellow',"WomenFeatherweight"='magenta')) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  guides(fill = FALSE)  
+```
+```{r}
+Stance<-c(FIGHT_INFO$R_Stance,FIGHT_INFO$B_Stance)
+stance_df <- data.frame(Stance = Stance)
+stance_df<-na.exclude(stance_df)
+stance_df<-table(stance_df)
+head(stance_df)
+```
+```{r}
+Stance_data<-data.frame(
+  Stance=names(stance_df),
+  count=as.numeric(stance_df)
+)
+
+ggplot(Stance_data, aes(x=Stance,y=count,fill=Stance))+
+  geom_bar(stat = 'identity')+
+  labs(title = "Stance",
+       x='Stance',
+       y='Nombre de Stance')+
+  scale_fill_manual(values = c("Open Stance"='red',"Orthodox"='blue',"Sideways"='green',"Southpaw"='orange',"Switch"='purple'))+
+  theme_minimal()+
+  theme(axis.title.x = element_text(angle = 45,hjust = 1))+
+  guides(fill=FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
