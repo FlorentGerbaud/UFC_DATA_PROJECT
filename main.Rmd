@@ -10,86 +10,70 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # UFC DATA PROJECT 
 
-## Retrieve the data from csv data set to convert into dataset
+## Retrieve the data from csv data set to convert into 
 
-### Data Preparation
+###Data Analyse
 
-#### First data set
 ```{r}
+
 #first data set : global info about fight
-path1 = '/Users/rayane_macbook_pro/Library/Mobile Documents/com~apple~CloudDocs/MAM-S8/DATA_VALORIZATION/UFC_DATA_PROJECT_1/data.csv'
-path2 = 
-path3 = 
-  
-FIGHT_INFO = read.csv(path1, 
+# Flo
+FIGHT_INFO = read.csv('data.csv', 
                       header = TRUE,
                       sep =",",
                       fill = TRUE,
                       na.strings = "NA",
                       dec = ".")
 
+# FIGHT_INFO = read.csv('~/Downloads/UFC_PROJECT/data.csv', 
+#                       header = TRUE,
+#                       sep =",",
+#                       fill = TRUE,
+#                       na.strings = "NA",
+#                       dec = ".")
+i = 100
+FIGHT_INFO$B_avg_CLINCH_att[i]
+FIGHT_INFO$B_avg_CLINCH_landed[i]
+FIGHT_INFO$R_avg_CLINCH_att[i]
+FIGHT_INFO$R_avg_CLINCH_landed[i]
+FIGHT_INFO$R_avg_opp_CLINCH_att[i]
+FIGHT_INFO$R_avg_opp_CLINCH_landed[i]
+FIGHT_INFO$B_avg_opp_CLINCH_att[i]
+FIGHT_INFO$B_avg_opp_CLINCH_landed[i]
 ```
-
-#### some data about first dataset
 ```{r}
-head(FIGHT_INFO)
 dim(FIGHT_INFO)
+
+```
+```{r}
 names(FIGHT_INFO)
+```
+```{r}
 summary(FIGHT_INFO)
 ```
-
-#### second dataset
 ```{r}
-#second data set : global info about fighter
-
-FIGHTER_INFO = read.csv(path1, 
-                      header = TRUE,
-                      sep =",",
-                      fill = TRUE,
-                      na.strings = "NA",
-                      dec = ".")
-head(FIGHTER_INFO)
-
-```
-
-#### third dataset
-```{r}
-
-#third data set : more info about fight (way of winning and so on)
-ADD_FIGHT_INFO = read.csv(path1, 
-                header = TRUE,
-                sep =";",
-                fill = TRUE,
-                na.string = "NA")
-```
-
-
-
-
-
-
-
-```{r}
-UNIQUE_FIGHTER<-table(FIGHT_INFO$R_fighter)
-COUNT_R_FIGHTER<-sort(UNIQUE_FIGHTER, decreasing = TRUE)
-COUNT_R_FIGHTER
+#UNIQUE_R_FIGHTER<-table(FIGHT_INFO$R_fighter)
+#COUNT_R_FIGHTER<-sort(UNIQUE_FIGHTER, decreasing = TRUE)
+#head(COUNT_R_FIGHTER)
 ```
 ```{r}
 B_FIGHTER<-table(FIGHT_INFO$B_fighter)
 COUNT_B_FIGHTER<-sort(B_FIGHTER, decreasing = TRUE)
-COUNT_B_FIGHTER
+head(COUNT_B_FIGHTER)
 ```
 ```{r}
 Winner_count<-table(FIGHT_INFO$Winner)
+
 Red_wins<-Winner_count["Red"]
 Blue_wins<-Winner_count["Blue"]
-print(paste("Red wins: ",Red_wins," ,Blue wins: ",Blue_wins))
+Draw<-Winner_count["Draw"]
+print(paste("Red wins: ",Red_wins," ,Blue wins: ",Blue_wins," ,Draw: ",Draw))
 ```
 ```{r}
 library(ggplot2)
 Wins_data<-data.frame(
-  Fighter=c("Red","Blue"),
-  Wins=c(Red_wins,Blue_wins)
+  Fighter=c("Red","Blue","Draw"),
+  Wins=c(Red_wins,Blue_wins,Draw)
 )
 
 
@@ -98,7 +82,7 @@ ggplot(Wins_data, aes(x = Fighter, y = Wins, fill = Fighter)) +
   labs(title = "Nombre de victoires par couleur de combattant",
        x = "combattant",
        y = "Nombre de victoires") +
-  scale_fill_manual(values = c("Red" = "red", "Blue" = "blue")) +
+  scale_fill_manual(values = c("Red" = "red", "Blue" = "blue","Draw" = "green")) +
   theme_minimal()
 ```
 ```{r}
@@ -147,6 +131,84 @@ ggplot(Stance_data, aes(x=Stance,y=count,fill=Stance))+
   theme(axis.title.x = element_text(angle = 45,hjust = 1))+
   guides(fill=FALSE)
 ```
+```{r}
+AGE<-c(FIGHT_INFO$R_age,FIGHT_INFO$B_age)
+AGE_STANCE<-data.frame(
+  Stance=Stance,
+  Age=AGE
+)
+table(AGE_STANCE)
+```
+```{r}
+
+
+AGE <- c(FIGHT_INFO$R_age, FIGHT_INFO$B_age)
+Stance <- c(FIGHT_INFO$R_Stance, FIGHT_INFO$B_Stance)
+
+AGE_STANCE <- data.frame(
+  Stance = Stance,
+  Age = AGE
+)
+
+AGE_STANCE$Stance <- factor(AGE_STANCE$Stance)
+
+ggplot(AGE_STANCE, aes(x = Stance, y = Age)) +
+  geom_point(position = position_dodge(width = 0.5), size = 3) +
+  labs(x = "Stance", y = "Age") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+```{r}
+Height_data<-c(FIGHT_INFO$R_Height_cms,FIGHT_INFO$B_Height_cms)
+# Créer un tracé de densité avec des barres pour chaque hauteur
+ggplot(data = data.frame(Height = Height_data), aes(x = Height)) +
+  geom_density(fill = "black", alpha = 0.5) +  # Barres avec une largeur de bin de 1
+  labs(title = "height distribution", x = "Height", y = "Density")
+
+```
+
+
+```{r}
+
+Age_serie <- c(FIGHT_INFO$R_age, FIGHT_INFO$B_age)
+Age_class <- cut(Age_serie, breaks = c(0, 35, 100), labels = c("Below 35", "Above 35"), right = FALSE)
+Age_class<-table(Age_class)
+Age_class_data<-data.frame(
+  Cat=names(Age_class),
+  Num=as.numeric(Age_class)
+)
+ggplot(Age_class_data, aes(x=Cat,y=Num,fill=Cat))+
+  geom_bar(stat = 'identity')+
+  labs(title = 'Age Categorie',
+        x='Categories',
+        y='number of fighters')+
+  scale_fill_manual(values = c("Below 35"="orange","Above 35"="purple"))+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+  
+
+```
+```{r}
+R_Age_Streak<-FIGHT_INFO[,c("R_age","R_longest_win_streak")]
+B_Age_Streak<-FIGHT_INFO[,c("B_age","B_longest_win_streak")]
+colnames(R_Age_Streak)<-c("Age","Win_Streak")
+colnames(B_Age_Streak)<-c("Age","Win_Streak")
+Age_Streak<-rbind(R_Age_Streak,B_Age_Streak)
+Age_Streak<-Age_Streak[!is.na(Age_Streak$Age) & !is.na(Age_Streak$Win_Streak),]
+
+library(pheatmap)
+
+pheatmap(cor(Age_Streak),
+         fontsize = 12,
+         annotation_colors = "Reds",
+         main = "Correlation between variabls")
+
+```
+### Pre-processing
+##11
 
 
 
@@ -155,9 +217,345 @@ ggplot(Stance_data, aes(x=Stance,y=count,fill=Stance))+
 
 
 
+```{r}
+nmbr_NA_variables<-colSums(is.na(FIGHT_INFO))
+nmbr_NA_variables
+```
+
+
+
+```{r}
+FIGHT_INFO<-subset(FIGHT_INFO,select = -c(9:57))
+```
+
+```{r}
+colSums(is.na(FIGHT_INFO))
+```
+
+````{r}
+FIGHT_INFO<-subset(FIGHT_INFO,select = -c(27:75))
+```
+
+```{r}
+colSums(is.na(FIGHT_INFO))
+```
+
+
+```{r}
+FIGHT_INFO$B_Height_cms[is.na(FIGHT_INFO$B_Height_cms)]<-mean(FIGHT_INFO$B_Height_cms, na.rm = TRUE)
+FIGHT_INFO$B_Reach_cms[is.na(FIGHT_INFO$B_Reach_cms)]<-mean(FIGHT_INFO$B_Reach_cms, na.rm = TRUE)
+FIGHT_INFO$R_Height_cms[is.na(FIGHT_INFO$R_Height_cms)]<-mean(FIGHT_INFO$R_Height_cms, na.rm = TRUE)
+FIGHT_INFO$B_age[is.na(FIGHT_INFO$B_age)]<-mean(FIGHT_INFO$B_age, na.rm = TRUE)
+FIGHT_INFO$R_Reach_cms[is.na(FIGHT_INFO$R_Reach_cms)]<-mean(FIGHT_INFO$R_Reach_cms, na.rm = TRUE)
+FIGHT_INFO$R_age[is.na(FIGHT_INFO$R_age)]<-mean(FIGHT_INFO$R_age, na.rm = TRUE)
+colSums(is.na(FIGHT_INFO))
+```
+
+
+```{r}
+for (i in 1:dim(FIGHT_INFO)[1]){
+  if (FIGHT_INFO$weight_class[i] == "Bantamweight") {
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(125:135))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(125:135))
+    }
+  }  
+  else if (FIGHT_INFO$weight_class[i] == "CatchWeight") {
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(FIGHT_INFO$R_Weight_lbs)
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(FIGHT_INFO$B_Weight_lbs)
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Featherweight"){ 
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(135:145))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(135:145))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Flyweight") {
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(115:125))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(115:125))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Heavyweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(205:265))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(205:265))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "LightHeavyweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(185:205))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(185:205))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Lightweight") {
+   
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(145:155))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(145:155))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Middleweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(170:185))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(170:185))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "OpenWeight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(FIGHT_INFO$R_Weight_lbs)
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(FIGHT_INFO$R_Weight_lbs[i])
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "Welterweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(155:170))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(155:170))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "WomenBantamweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(125:135))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(125:136))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "WomenFeatherweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(136:145))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(136:145))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "WomenFlyweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(116:125))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(116:125))
+    }
+  }
+  else if (FIGHT_INFO$weight_class[i] == "WomenStrawweight") {
+    
+    if (is.na(FIGHT_INFO$R_Weight_lbs[i])) {
+      FIGHT_INFO$R_Weight_lbs[i] = mean(c(106:115))
+    }
+    if (is.na(FIGHT_INFO$B_Weight_lbs[i])) {
+      FIGHT_INFO$B_Weight_lbs[i] = mean(c(106:115))
+    }
+  }
+}
+  
+```
 
 
 
 
 
+
+
+
+````{r}
+dim(FIGHT_INFO)
+
+````
+
+```{r}
+FIGHT_INFO$Winner<-factor(FIGHT_INFO$Winner)
+levels(FIGHT_INFO$Winner)<-c("Draw"=0,"Red"=1,"Blue"=2)
+FIGHT_INFO$title_bout<-factor(FIGHT_INFO$title_bout)
+levels(FIGHT_INFO$title_bout)<-c("False"=0,"True"=1)
+FIGHT_INFO$weight_class<-factor(FIGHT_INFO$weight_class)
+levels(FIGHT_INFO$weight_class)<-c("Bantamweight"=1,"CatchWeight"=2,"Featherweight"=3,"Flyweight"=4,"Heavyweight"=5,
+                                   "LightHeavyweight"=6,"Lightweight"=7,"Middleweight"=8,"OpenWeight"=9,"Welterweight"=10,
+                                   "WomenBantamweight"=11,"WomenFeatherweight"=12,"WomenFlyweight"=13,"WomenStrawweight"=14)
+FIGHT_INFO$B_Stance<-factor(FIGHT_INFO$B_Stance)
+levels(FIGHT_INFO$B_Stance)[levels(FIGHT_INFO$B_Stance) == ""] <- "Unknown"
+levels(FIGHT_INFO$B_Stance)<-c("Unknown"=0,"Open Stance"=1,"Orthodox"=2,"Sideways"=3,"Southpaw"=4 ,"Switch"=5)
+FIGHT_INFO$R_Stance<-factor(FIGHT_INFO$R_Stance)
+levels(FIGHT_INFO$R_Stance)[levels(FIGHT_INFO$R_Stance) == ""] <- "Unknown"
+levels(FIGHT_INFO$R_Stance)<-c("Unknown"=0,"Open Stance"=1,"Orthodox"=2,"Sideways"=3,"Southpaw"=4 ,"Switch"=5)
+head(FIGHT_INFO)
+
+
+```
+```{r}
+FIGHT_INFO=FIGHT_INFO[,-c(1:5)]
+head(FIGHT_INFO)
+```
+```{r}
+
+#second data set : global info about fighter
+#Flo 
+FIGHTER_INFO = read.csv('raw_fighter_details.csv', 
+                      header = TRUE,
+                      sep =",",
+                      fill = TRUE,
+                      na.strings = "NA",
+                      dec = ".")
+# FIGHTER_INFO = read.csv('~/Downloads/UFC_PROJECT/raw_fighter_details.csv', 
+#                       header = TRUE,
+#                       sep =",",
+#                       fill = TRUE,
+#                       na.strings = "NA",
+#                       dec = ".")
+head(FIGHTER_INFO)
+
+```
+
+```{r}
+dim(FIGHTER_INFO)
+```
+
+```{r}
+
+#third data set : more info about fight (way of winning and so on)
+#Flo
+
+TEST = read.csv('raw_total_fight_data.csv', 
+                header = TRUE,
+                sep =";",
+                fill = TRUE,
+                na.string = "NA")
+
+# TEST = read.csv('~/Downloads/UFC_PROJECT/raw_total_fight_data.csv', 
+#                 header = TRUE,
+#                 sep =";",
+#                 fill = TRUE,
+#                 na.string = "NA")
+head(TEST)
+```
+
+```{r}
+dim(TEST)
+```
+
+```{r}
+# Charger le package dplyr
+library(dplyr)
+
+# Spleating the str (n of t) as table of 3 string
+#___________________________________________________________________________#
+R_Head_split <- strsplit(TEST$R_HEAD, split = " ")
+B_Head_split <- strsplit(TEST$B_HEAD, split = " ")
+R_Body_split = strsplit(TEST$R_BODY, split = " ")
+B_Body_split = strsplit(TEST$B_BODY, split = " ")
+R_Leg_split = strsplit(TEST$R_LEG, split = " ")
+B_Leg_split = strsplit(TEST$B_LEG, split = " ")
+R_Distance_split = strsplit(TEST$R_DISTANCE, split = " ")
+B_Distance_split = strsplit(TEST$B_DISTANCE, split = " ")
+#___________________________________________________________________________#
+
+# creation of empty vector to store the data (touch or not touch) as numeric
+#___________________________________________________________________________#
+
+R_HeadTouch <- numeric()
+R_HeadNoTouch <- numeric()
+B_HeadTouch <- numeric()
+B_HeadNoTouch <- numeric()
+
+R_BodyTouch <- numeric()
+R_BodyNoTouch <- numeric()
+B_BodyTouch <- numeric()
+B_BodyNoTouch <- numeric()
+
+R_LegTouch <- numeric()
+R_LegNoTouch <- numeric()
+B_LegTouch <- numeric()
+B_LegNoTouch <- numeric()
+
+R_DistanceTouch <- numeric()
+R_DistanceNoTouch <- numeric()
+B_DistanceTouch <- numeric()
+B_DistanceNoTouch <- numeric()
+
+#___________________________________________________________________________#
+
+# filling of the vector (touch/not touch)
+#___________________________________________________________________________#
+
+for (i in seq_along(R_Head_split)) {
+  # Récupérer le premier et le troisième élément de chaque vecteur de chaînes
+  R_HeadTouch[i] <- as.numeric(R_Head_split[[i]][1])
+  R_HeadNoTouch[i] <- as.numeric(R_Head_split[[i]][3])
+  B_HeadTouch[i] <- as.numeric(B_Head_split[[i]][1])
+  B_HeadNoTouch[i] <- as.numeric(B_Head_split[[i]][3])
+  
+  R_BodyTouch[i] = as.numeric(R_Body_split[[i]][1])
+  R_BodyNoTouch[i] = as.numeric(R_Body_split[[i]][3])
+  B_BodyTouch[i] = as.numeric(B_Body_split[[i]][1])
+  B_BodyNoTouch[i] = as.numeric(B_Body_split[[i]][3])
+  
+  R_LegTouch[i] = as.numeric(R_Leg_split[[i]][1])
+  R_LegNoTouch[i] = as.numeric(R_Leg_split[[i]][3])
+  B_LegTouch[i] = as.numeric(B_Leg_split[[i]][1])
+  B_LegNoTouch[i] = as.numeric(B_Leg_split[[i]][3])
+  
+  R_DistanceTouch[i] = as.numeric(R_Distance_split[[i]][1])
+  R_DistanceNoTouch[i] = as.numeric(R_Distance_split[[i]][3])
+  B_DistanceTouch[i] = as.numeric(B_Distance_split[[i]][1])
+  B_DistanceNoTouch[i] = as.numeric(B_Distance_split[[i]][3])
+}
+
+
+# Modification of the TEST table (adding the new columns)
+#___________________________________________________________________________#
+TEST <- cbind(TEST, 
+              R_HeadTouch, 
+              R_HeadNoTouch, 
+              B_HeadTouch, 
+              B_HeadNoTouch, 
+              R_BodyTouch, 
+              R_BodyNoTouch, 
+              B_BodyTouch, 
+              B_BodyNoTouch,
+              R_LegTouch, 
+              R_LegNoTouch,
+              B_LegTouch, 
+              B_LegNoTouch,
+              R_DistanceTouch, 
+              R_DistanceNoTouch,
+              B_DistanceTouch, 
+              B_DistanceNoTouch)
+
+#___________________________________________________________________________#
+
+# Modification of the TEST table (deleting the previous columns)
+#___________________________________________________________________________#
+
+TEST <- select(TEST, -R_HEAD, -B_HEAD, -R_BODY, -B_BODY, -R_DISTANCE, -B_DISTANCE)
+
+```
 
