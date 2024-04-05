@@ -1,0 +1,65 @@
+---
+title: "DecisionTree"
+author: "Flo"
+date: "2024-04-05"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data=read.csv("preprocessing_data_UFC.csv")
+head(data)
+```
+
+```{r}
+
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+    n_row = nrow(data)
+    total_row = size * n_row
+    train_sample = 1: total_row
+    if (train == TRUE) {
+        return (data[train_sample, ])
+    } else {
+        return (data[-train_sample, ])
+    }
+}
+
+data_train <- create_train_test(df, 0.8, train = TRUE)
+data_test <- create_train_test(df, 0.8, train = FALSE)
+# a voir comment faire j'ai mit cette ligne car sinon matrice rectanguaire et donc pb dans le calcul des matrice de confusion
+data_test$WINNER[1]=0
+
+
+# Charger le package nécessaire
+library(rpart)
+library(rpart.plot)
+
+# Charger les données
+df <- read.csv("preprocessing_data_UFC.csv")
+
+# Définir les paramètres de contrôle
+control <- rpart.control(cp = 0.01, # complexité du modèle
+                          minsplit = 4, # nombre minimum d'observations pour diviser un nœud
+                          minbucket = 5/3, # nombre minimum d'observations dans chaque feuille
+                          maxdepth = 3) # profondeur maximale de l'arbre
+# Fit a decision tree using the Gini index
+treeFitted <- rpart(WINNER ~ R_Head_split._Touch + B_Head_split._Touch, data = data_train, method = "class",control=control)
+
+# Plot the decision tree
+rpart.plot(treeFitted, type = 3, extra = 101)
+
+# Create a new data frame for prediction
+trainingDataSet <- data.frame(R_Head_split._Touch = 32, B_Head_split._Touch = 14, WINNER=2)
+
+# Make prediction
+prediction <- predict(treeFitted, data_test, type = "class")
+
+# Print the prediction
+print(paste("The predicted winner is: ", prediction))
+table_mat <- table(data_test$WINNER, prediction)
+table_mat
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+```
