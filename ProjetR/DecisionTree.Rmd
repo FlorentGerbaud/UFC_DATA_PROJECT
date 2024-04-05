@@ -9,13 +9,22 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Remaqrque
+
+Les jambes ne servent a rien pour les decision tree
+
 ```{r}
 data=read.csv("preprocessing_data_UFC.csv")
 head(data)
 ```
 
 ```{r}
+# Charger le package nécessaire
+library(rpart)
+library(rpart.plot)
 
+# Charger les données
+df <- read.csv("preprocessing_data_UFC.csv")
 create_train_test <- function(data, size = 0.8, train = TRUE) {
     n_row = nrow(data)
     total_row = size * n_row
@@ -33,33 +42,143 @@ data_test <- create_train_test(df, 0.8, train = FALSE)
 data_test$WINNER[1]=0
 
 
-# Charger le package nécessaire
-library(rpart)
-library(rpart.plot)
 
-# Charger les données
-df <- read.csv("preprocessing_data_UFC.csv")
+
 
 # Définir les paramètres de contrôle
-control <- rpart.control(cp = 0.01, # complexité du modèle
+control <- rpart.control(cp = 0.12, # complexité du modèle
+                          minbucket = round(5 / 3),
                           minsplit = 4, # nombre minimum d'observations pour diviser un nœud
-                          minbucket = 5/3, # nombre minimum d'observations dans chaque feuille
                           maxdepth = 3) # profondeur maximale de l'arbre
 # Fit a decision tree using the Gini index
-treeFitted <- rpart(WINNER ~ R_Head_split._Touch + B_Head_split._Touch, data = data_train, method = "class",control=control)
+treeFitted_1 <- rpart(WINNER ~ R_Head_split._Touch + B_Head_split._Touch, data = data_train, method = "class",control=control)
 
 # Plot the decision tree
-rpart.plot(treeFitted, type = 3, extra = 101)
-
-# Create a new data frame for prediction
-trainingDataSet <- data.frame(R_Head_split._Touch = 32, B_Head_split._Touch = 14, WINNER=2)
-
+rpart.plot(treeFitted_1, type = 3, extra = 101)
+```
+```{r}
 # Make prediction
-prediction <- predict(treeFitted, data_test, type = "class")
+predictionWinner_1 <- predict(treeFitted_1, data_test, type = "class")
 
 # Print the prediction
-print(paste("The predicted winner is: ", prediction))
-table_mat <- table(data_test$WINNER, prediction)
-table_mat
-accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+#print(paste("The predicted winner is: ", predictionWinner_1))
+table_mat_1 <- table(data_test$WINNER, predictionWinner_1)
+table_mat_1
+accuracy_Test_1 <- sum(diag(table_mat_1)) / sum(table_mat_1)
+```
+
+```{r}
+# Définir les paramètres de contrôle
+control <- rpart.control(cp = 0.02, # complexité du modèle
+                          minbucket = round(5 / 3),
+                          minsplit = 4, # nombre minimum d'observations pour diviser un nœud
+                          maxdepth = 3) # profondeur maximale de l'arbre
+# Fit a decision tree using the Gini index
+treeFitted_2 <- rpart(WINNER ~ R_Body_split._Touch + B_Body_split._Touch , data = data_train, method = "class",control=control)
+
+# Plot the decision tree
+rpart.plot(treeFitted_2, type = 3, extra = 101)
+```
+
+```{r}
+# Make prediction
+predictionWinner_2 <- predict(treeFitted_2, data_test, type = "class")
+
+# Print the prediction
+#print(paste("The predicted winner is: ", predictionWinner_1))
+table_mat_2 <- table(data_test$WINNER, predictionWinner_2)
+table_mat_2
+accuracy_Test_2 <- sum(diag(table_mat_2)) / sum(table_mat_2)
+```
+
+```{r}
+# Définir les paramètres de contrôle
+control <- rpart.control(cp = 0.02, # complexité du modèle
+                          minbucket = round(5 / 3),
+                          minsplit = 4, # nombre minimum d'observations pour diviser un nœud
+                          maxdepth = 3) # profondeur maximale de l'arbre
+# Fit a decision tree using the Gini index
+treeFitted_3 <- rpart(WINNER ~ R_Distance_split._Touch + B_Distance_split._Touch , data = data_train, method = "class",control=control)
+
+# Plot the decision tree
+rpart.plot(treeFitted_3, type = 3, extra = 101)
+```
+
+```{r}
+# Make prediction
+predictionWinner_3 <- predict(treeFitted_3, data_test, type = "class")
+
+# Print the prediction
+#print(paste("The predicted winner is: ", predictionWinner_1))
+table_mat_3 <- table(data_test$WINNER, predictionWinner_3)
+table_mat_3
+accuracy_Test_3 <- sum(diag(table_mat_3)) / sum(table_mat_3)
+```
+
+```{r}
+# Vérifier si les trois prédictions sont différentes
+diff1 <- predictionWinner_1 != predictionWinner_2
+diff2 <- predictionWinner_1 != predictionWinner_3
+diff3 <- predictionWinner_2 != predictionWinner_3
+
+# Trouver les indices des observations pour lesquelles les prédictions sont différentes
+indices <- which(diff1 | diff2 | diff3)
+
+# Afficher les indices
+print(indices)
+```
+
+# Pseudo Random Forest
+
+```{r}
+numberOfTree=3
+indicesDiff=4809+825
+RealWinner=df$WINNER[indicesDiff]
+
+predictionWinner_RF_T1 <- predict(treeFitted_1, data.frame(R_Head_split._Touch = df$R_Head_split._Touch[indicesDiff], B_Head_split._Touch = df$B_Head_split._Touch[indicesDiff]), type = "class")
+resT1=print(paste("The predicted winner is: ", predictionWinner_RF_T1))
+
+predictionWinner_RF_T2 <- predict(treeFitted_2, data.frame(R_Body_split._Touch = df$R_Body_split._Touch[indicesDiff], B_Body_split._Touch = df$B_Body_split._Touch[indicesDiff]), type = "class")
+resT2=print(paste("The predicted winner is: ", predictionWinner_RF_T2))
+
+predictionWinner_RF_T3 <- predict(treeFitted_3, data.frame(R_Distance_split._Touch = df$R_Distance_split._Touch[indicesDiff], B_Distance_split._Touch = df$B_Distance_split._Touch[indicesDiff]), type = "class")
+resT3=print(paste("The predicted winner is: ", predictionWinner_RF_T3))
+
+
+res <- numeric(numberOfTree)
+for (i in 1:numberOfTree) {
+  split_string <- strsplit(get(paste0("resT", i)), split = " ")[[1]]
+  res[i] <- as.integer(split_string[length(split_string)])
+}
+
+#res
+# Compter les occurrences de chaque valeur dans le tableau
+occurrences <- table(res)
+
+# Trouver le nombre maximal d'occurrences
+max_occurrences <- max(occurrences)
+
+# Trouver les valeurs qui ont le nombre maximal d'occurrences
+majority_vote <- names(occurrences[occurrences == max_occurrences])
+
+
+# Afficher le résultat
+print(RealWinner)
+print(paste0("On décide que le winner est dans la catégorie : ", majority_vote))
+```
+
+```{r}
+# Création d'un exemple de tableau
+tableau <- res
+
+# Compter les occurrences de chaque valeur dans le tableau
+occurrences <- table(tableau)
+
+# Trouver le nombre maximal d'occurrences
+max_occurrences <- max(occurrences)
+
+# Trouver les valeurs qui ont le nombre maximal d'occurrences
+max_value <- names(occurrences[occurrences == max_occurrences])
+
+print(max_value)
 ```
